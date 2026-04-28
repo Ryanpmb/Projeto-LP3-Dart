@@ -19,3 +19,27 @@ Seguindo conceitos do DDD tivemos a ideia de seguir a seguinte estruturação de
         Camada onde estará as telas.
     - components
         Camada onde terá componetes visuais para auxílio como dialogs, modais, etc.
+
+### Domains
+#### Identidade
+- Entities
+    - User
+    - Session
+    - Credentials
+#### Cofre
+- Entities
+    - Vault
+    - ValutItem
+    - ItemType
+#### Crypto
+- Entities
+    - EncriptionKey
+    - KeyDerivation
+    - EncryptedData
+#### Devices
+- Entities
+    - Device
+#### Security
+- Entitites
+    - TFM
+    - SecurityPolicy
