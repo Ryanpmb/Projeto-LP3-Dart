@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Login extends StatelessWidget {
-  const Login({super.key});
+class Register extends StatelessWidget {
+  const Register({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +21,16 @@ class Login extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Colors.lightBlue, width: 2),
+                        bottom: BorderSide(
+                          color: Color.fromARGB(90, 3, 168, 244),
+                          width: 2,
+                        ),
                       ),
                     ),
                     child: const Text(
                       "Log in",
                       style: TextStyle(
-                        color: Colors.lightBlue,
+                        color: Color.fromARGB(90, 3, 168, 244),
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -38,16 +41,13 @@ class Login extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(
-                          color: Color.fromARGB(90, 3, 168, 244),
-                          width: 2,
-                        ),
+                        bottom: BorderSide(color: Colors.lightBlue, width: 2),
                       ),
                     ),
                     child: const Text(
                       "Sign up",
                       style: TextStyle(
-                        color: Color.fromARGB(90, 3, 168, 244),
+                        color: Colors.lightBlue,
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
@@ -78,9 +78,17 @@ class Login extends StatelessWidget {
                       labelText: "Password",
                     ),
                   ),
+                  TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      labelText: "Repeat password",
+                    ),
+                  ),
                   ElevatedButton(
-                    onPressed: () =>
-                        (Navigator.pushNamed(context, "/register")),
+                    onPressed: () => (Navigator.pushNamed(context, "/login")),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
@@ -97,7 +105,7 @@ class Login extends StatelessWidget {
                         fontWeight: FontWeight(600),
                       ),
                     ),
-                    child: Text("Continue"),
+                    child: Text("Register"),
                   ),
                 ],
               ),
