@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "720336806753",
+    "project_id": "guardians-app-br",
+    "storage_bucket": "guardians-app-br.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720336806753:android:9da988ced2b35c28a71b20",
+        "android_client_info": {
+          "package_name": "com.example.guardians"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO4NYCK2Pw5qEWeH4pVVr8zTkU4Z9j4eg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
