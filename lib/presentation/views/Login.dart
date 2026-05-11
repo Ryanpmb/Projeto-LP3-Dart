@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -98,6 +99,28 @@ class Login extends StatelessWidget {
                       ),
                     ),
                     child: Text("Continue"),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                      ),
+                      children: [
+                        TextSpan(text: "Don't have an account? "),
+                        TextSpan(
+                          text: "Sign up",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              (Navigator.pushNamed(context, "/register"));
+                            },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
