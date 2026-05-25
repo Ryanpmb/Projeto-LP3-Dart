@@ -65,10 +65,10 @@ class _RegisterState extends State<Register> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, "/login"),
-                    child: _buildTabItem("Log in", isActive: false),
+                    child: _buildTabItem("Entrar", isActive: false),
                   ),
                   const SizedBox(width: 15),
-                  _buildTabItem("Sign up", isActive: true),
+                  _buildTabItem("Registrar-se", isActive: true),
                 ],
               ),
 
@@ -83,7 +83,7 @@ class _RegisterState extends State<Register> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      labelText: "Name",
+                      labelText: "Nome",
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -104,7 +104,7 @@ class _RegisterState extends State<Register> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      labelText: "Password",
+                      labelText: "Senha",
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -115,7 +115,7 @@ class _RegisterState extends State<Register> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      labelText: "Repeat password",
+                      labelText: "Repita a senha",
                     ),
                   ),
                   const SizedBox(height: 25),
@@ -139,7 +139,7 @@ class _RegisterState extends State<Register> {
                             ),
                           )
                         : const Text(
-                            "Register",
+                            "Registrar-se",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

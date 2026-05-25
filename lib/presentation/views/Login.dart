@@ -15,8 +15,9 @@ class _LoginState extends State<Login> {
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty)
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       return;
+    }
     setState(() => _isLoading = true);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -42,26 +43,26 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          // Define a altura exata da tela para os Spacers funcionarem
           height: MediaQuery.of(context).size.height,
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              const SizedBox(height: 10), // Respiro do topo
+              const SizedBox(height: 10),
               // 1. TOPO: Navegação
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildTabItem("Log in", isActive: true),
+                  _buildTabItem("Entrar", isActive: true),
                   const SizedBox(width: 15),
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, "/register"),
-                    child: _buildTabItem("Sign up", isActive: false),
+                    child: _buildTabItem("Registrar-se", isActive: false),
                   ),
                 ],
               ),
 
-              const Spacer(), // Empurra o que está abaixo para o meio
+              const Spacer(),
+
               // 2. MEIO: Formulário
               Column(
                 children: [
@@ -82,7 +83,7 @@ class _LoginState extends State<Login> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      labelText: "Password",
+                      labelText: "Senha",
                     ),
                   ),
                   const SizedBox(height: 25),
@@ -106,7 +107,7 @@ class _LoginState extends State<Login> {
                             ),
                           )
                         : const Text(
-                            "Continue",
+                            "Entrar",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -118,9 +119,9 @@ class _LoginState extends State<Login> {
                     text: TextSpan(
                       style: const TextStyle(color: Colors.black, fontSize: 15),
                       children: [
-                        const TextSpan(text: "Don't have an account? "),
+                        const TextSpan(text: "Ainda não possui uma conta? "),
                         TextSpan(
-                          text: "Sign up",
+                          text: "Registrar-se",
                           style: const TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.bold,
@@ -135,7 +136,8 @@ class _LoginState extends State<Login> {
                 ],
               ),
 
-              const Spacer(), // Empurra o que está acima para o meio e o que está abaixo para o fim
+              const Spacer(),
+
               // 3. RODAPÉ: Footer
               const Padding(
                 padding: EdgeInsets.only(bottom: 10),
