@@ -14,4 +14,22 @@ class UserEntity {
     this.createdAt,
     this.updatedAt,
   });
+
+  UserEntity copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? passwordHash,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      passwordHash: passwordHash ?? this.passwordHash,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
