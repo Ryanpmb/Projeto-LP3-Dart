@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -8,33 +10,70 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  // --- LÓGICA FIREBASE ---
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Controllers para capturar o que o usuário digita
+  final TextEditingController _serviceController = TextEditingController();
+  final TextEditingController _userController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+
   bool _isObscure = true;
 
-  final List<Map<String, String>> mockPasswords = [
-    {
-      "service": "Google",
-      "user": "admin@gmail.com",
-      "icon": "G",
-      "pass": "12345678",
-    },
-    {
-      "service": "GitHub",
-      "user": "flutter",
-      "icon": "GH",
-      "pass": "git_pass_99",
-    },
-    {
-      "service": "Instagram",
-      "user": "@flutter",
-      "icon": "I",
-      "pass": "flutter123!",
-    },
-  ];
+  Future<void> _handleSave(String? docId) async {
+    final String uid = _auth.currentUser!.uid;
+    final data = {
+      "service": _serviceController.text,
+      "user": _userController.text,
+      "pass": _passController.text,
+      "icon": _serviceController.text.isNotEmpty
+          ? _serviceController.text[0].toUpperCase()
+          : "?",
+      "updatedAt": FieldValue.serverTimestamp(),
+    };
+
+    if (docId == null) {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('guardioes')
+          .add(data);
+    } else {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('guardioes')
+          .doc(docId)
+          .update(data);
+    }
+  }
+
+  Future<void> _handleDelete(String docId) async {
+    final String uid = _auth.currentUser!.uid;
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('guardioes')
+        .doc(docId)
+        .delete();
+  }
 
   void _showPasswordModal({
-    Map<String, String>? initialData,
+    Map<String, dynamic>? initialData,
+    String? docId,
     bool isEdit = false,
   }) {
+    if (isEdit && initialData != null) {
+      _serviceController.text = initialData['service'] ?? '';
+      _userController.text = initialData['user'] ?? '';
+      _passController.text = initialData['pass'] ?? '';
+    } else {
+      _serviceController.clear();
+      _userController.clear();
+      _passController.clear();
+    }
+
     _isObscure = true;
 
     showModalBottomSheet(
@@ -78,30 +117,24 @@ class _HomeState extends State<Home> {
                             Icons.delete_outline,
                             color: Colors.red,
                           ),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            _handleDelete(docId!);
+                            Navigator.pop(context);
+                          },
                         ),
                     ],
                   ),
                   const SizedBox(height: 20),
-
-                  _buildTextField(
-                    "Nome",
-                    Icons.apps,
-                    initialData?['service'],
-                  ),
+                  _buildTextField("Nome", Icons.apps, _serviceController),
                   const SizedBox(height: 15),
-
                   _buildTextField(
                     "Email ou Usuário",
                     Icons.person_outline,
-                    initialData?['user'],
+                    _userController,
                   ),
                   const SizedBox(height: 15),
-
                   TextField(
-                    controller: TextEditingController(
-                      text: initialData?['pass'],
-                    ),
+                    controller: _passController,
                     obscureText: _isObscure,
                     decoration: InputDecoration(
                       labelText: "Senha",
@@ -111,22 +144,20 @@ class _HomeState extends State<Home> {
                           _isObscure ? Icons.visibility_off : Icons.visibility,
                           color: Colors.blue,
                         ),
-                        onPressed: () {
-                          setModalState(() {
-                            _isObscure = !_isObscure;
-                          });
-                        },
+                        onPressed: () =>
+                            setModalState(() => _isObscure = !_isObscure),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 25),
-
                   ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                      await _handleSave(docId);
+                      Navigator.pop(context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
@@ -153,9 +184,13 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildTextField(String label, IconData icon, String? initialValue) {
+  Widget _buildTextField(
+    String label,
+    IconData icon,
+    TextEditingController controller,
+  ) {
     return TextField(
-      controller: TextEditingController(text: initialValue),
+      controller: controller,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
@@ -166,6 +201,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final String uid = _auth.currentUser!.uid;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -181,7 +218,12 @@ class _HomeState extends State<Home> {
         ),
         actions: [
           IconButton(
-            onPressed: () => Navigator.pushReplacementNamed(context, "/login"),
+            onPressed: () async {
+              await _auth.signOut();
+              if (mounted) {
+                Navigator.pushReplacementNamed(context, "/login");
+              }
+            },
             icon: const Icon(Icons.logout, color: Colors.blue),
           ),
         ],
@@ -205,43 +247,65 @@ class _HomeState extends State<Home> {
           ),
 
           Expanded(
-            child: ListView.builder(
-              itemCount: mockPasswords.length,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemBuilder: (context, index) {
-                final item = mockPasswords[index];
-                return Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(10),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue.shade50,
-                      child: Text(
-                        item["icon"]!,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('guardioes')
+                  .orderBy('updatedAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+
+                return ListView.builder(
+                  itemCount: docs.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final item = doc.data() as Map<String, dynamic>;
+                    final String docId = doc.id;
+
+                    return Card(
+                      elevation: 0,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        side: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(10),
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.blue.shade50,
+                          child: Text(
+                            item["icon"] ?? "G",
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          item["service"] ?? "",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(item["user"] ?? ""),
+                        trailing: const Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        onTap: () => _showPasswordModal(
+                          initialData: item,
+                          docId: docId,
+                          isEdit: true,
                         ),
                       ),
-                    ),
-                    title: Text(
-                      item["service"]!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(item["user"]!),
-                    trailing: const Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                    onTap: () =>
-                        _showPasswordModal(initialData: item, isEdit: true),
-                  ),
+                    );
+                  },
                 );
               },
             ),
