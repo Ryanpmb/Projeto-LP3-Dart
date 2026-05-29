@@ -20,6 +20,7 @@ class _HomeState extends State<Home> {
   final TextEditingController _passController = TextEditingController();
 
   bool _isObscure = true;
+  String _searchQuery = '';
 
   Future<void> _handleSave(String? docId) async {
     final String uid = _auth.currentUser!.uid;
@@ -233,6 +234,11 @@ class _HomeState extends State<Home> {
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
               decoration: InputDecoration(
                 hintText: "Procurar guardião...",
                 prefixIcon: const Icon(Icons.search),
@@ -259,13 +265,30 @@ class _HomeState extends State<Home> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                // 1. Pegamos todos os documentos do Firebase
+                final allDocs = snapshot.data?.docs ?? [];
+
+                // 2. Criamos a lista FILTRADA baseada no que o usuário digitou
+                final filteredDocs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final service = (data['service'] ?? "")
+                      .toString()
+                      .toLowerCase();
+                  return service.contains(_searchQuery.toLowerCase());
+                }).toList();
+
+                // 3. Verificamos se a lista filtrada está vazia para evitar a tela vermelha
+                if (filteredDocs.isEmpty) {
+                  return const Center(
+                    child: Text("Nenhum guardião encontrado."),
+                  );
+                }
 
                 return ListView.builder(
-                  itemCount: docs.length,
+                  itemCount: filteredDocs.length,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index) {
-                    final doc = docs[index];
+                    final doc = filteredDocs[index];
                     final item = doc.data() as Map<String, dynamic>;
                     final String docId = doc.id;
 
