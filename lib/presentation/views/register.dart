@@ -1,34 +1,44 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class Register extends StatefulWidget {
+  const Register({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Register> createState() => _RegisterState();
 }
 
-class _LoginState extends State<Login> {
+class _RegisterState extends State<Register> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _repeatPasswordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+  Future<void> _handleRegister() async {
+    if (_passwordController.text != _repeatPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("As senhas não coincidem"),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
     setState(() => _isLoading = true);
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      UserCredential user = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+      await user.user?.updateDisplayName(_nameController.text.trim());
       if (mounted) Navigator.pushReplacementNamed(context, "/home");
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("E-mail ou senha incorretos"),
+          content: Text("Erro ao registar"),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -48,24 +58,35 @@ class _LoginState extends State<Login> {
           child: Column(
             children: [
               const SizedBox(height: 10),
-              // 1. TOPO: Navegação
+
+              // 1. TOPO
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildTabItem("Entrar", isActive: true),
-                  const SizedBox(width: 15),
                   GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, "/register"),
-                    child: _buildTabItem("Registrar-se", isActive: false),
+                    onTap: () => Navigator.pushNamed(context, "/login"),
+                    child: _buildTabItem("Entrar", isActive: false),
                   ),
+                  const SizedBox(width: 15),
+                  _buildTabItem("Registrar-se", isActive: true),
                 ],
               ),
 
               const Spacer(),
 
-              // 2. MEIO: Formulário
+              // 2. MEIO
               Column(
                 children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      labelText: "Nome",
+                    ),
+                  ),
+                  const SizedBox(height: 15),
                   TextField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -86,9 +107,20 @@ class _LoginState extends State<Login> {
                       labelText: "Senha",
                     ),
                   ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _repeatPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      labelText: "Repita a senha",
+                    ),
+                  ),
                   const SizedBox(height: 25),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
@@ -107,38 +139,19 @@ class _LoginState extends State<Login> {
                             ),
                           )
                         : const Text(
-                            "Entrar",
+                            "Registrar-se",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                  ),
-                  const SizedBox(height: 20),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(color: Colors.black, fontSize: 15),
-                      children: [
-                        const TextSpan(text: "Ainda não possui uma conta? "),
-                        TextSpan(
-                          text: "Registrar-se",
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () =>
-                                Navigator.pushNamed(context, "/register"),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
 
               const Spacer(),
 
-              // 3. RODAPÉ: Footer
+              // 3. RODAPÉ
               const Padding(
                 padding: EdgeInsets.only(bottom: 10),
                 child: Text(
