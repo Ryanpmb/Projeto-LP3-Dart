@@ -14,18 +14,26 @@ class _LoginState extends State<Login> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  /// Realiza o login com e-mail e senha via Firebase.
+  /// Exibe um SnackBar de erro caso a autenticação falhe.
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       return;
     }
+
     setState(() => _isLoading = true);
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Login bem-sucedido: redireciona para a tela principal
       if (mounted) Navigator.pushReplacementNamed(context, "/home");
+
     } on FirebaseAuthException catch (error) {
+      // Mapeia os códigos de erro do Firebase para mensagens amigáveis ao usuário
       String errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
 
       switch (error.code) {
@@ -63,6 +71,7 @@ class _LoginState extends State<Login> {
         ),
       );
     } finally {
+      // Garante que o loading seja desativado independentemente do resultado
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -72,12 +81,14 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
+          // Ocupa a altura total da tela para distribuir os elementos com Spacer
           height: MediaQuery.of(context).size.height,
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               const SizedBox(height: 10),
-              // 1. TOPO: Navegação
+
+              // Abas de navegação entre Login e Registro
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -92,7 +103,7 @@ class _LoginState extends State<Login> {
 
               const Spacer(),
 
-              // 2. MEIO: Formulário
+              // Formulário de login
               Column(
                 children: [
                   TextField(
@@ -107,7 +118,7 @@ class _LoginState extends State<Login> {
                   const SizedBox(height: 15),
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: true, // Oculta os caracteres da senha
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -126,6 +137,7 @@ class _LoginState extends State<Login> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    // Exibe um spinner enquanto o login está sendo processado
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -144,6 +156,7 @@ class _LoginState extends State<Login> {
                           ),
                   ),
                   const SizedBox(height: 20),
+                  // Link alternativo para a tela de registro
                   RichText(
                     text: TextSpan(
                       style: const TextStyle(color: Colors.black, fontSize: 15),
@@ -167,7 +180,7 @@ class _LoginState extends State<Login> {
 
               const Spacer(),
 
-              // 3. RODAPÉ: Footer
+              // Rodapé com a marca do app
               const Padding(
                 padding: EdgeInsets.only(bottom: 10),
                 child: Text(
@@ -186,6 +199,7 @@ class _LoginState extends State<Login> {
     );
   }
 
+  /// Constrói uma aba de navegação com indicador visual de estado ativo/inativo.
   Widget _buildTabItem(String label, {required bool isActive}) {
     return Container(
       padding: const EdgeInsets.only(bottom: 4),
