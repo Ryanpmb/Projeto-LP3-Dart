@@ -10,11 +10,9 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // --- LÓGICA FIREBASE ---
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Controllers para capturar o que o usuário digita
   final TextEditingController _serviceController = TextEditingController();
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
@@ -22,12 +20,15 @@ class _HomeState extends State<Home> {
   bool _isObscure = true;
   String _searchQuery = '';
 
+  /// Salva ou atualiza um guardião no Firestore.
+  /// Se [docId] for nulo, cria um novo documento; caso contrário, atualiza o existente.
   Future<void> _handleSave(String? docId) async {
     final String uid = _auth.currentUser!.uid;
     final data = {
       "service": _serviceController.text,
       "user": _userController.text,
       "pass": _passController.text,
+      // Usa a primeira letra do serviço como ícone, ou "?" se o campo estiver vazio
       "icon": _serviceController.text.isNotEmpty
           ? _serviceController.text[0].toUpperCase()
           : "?",
@@ -50,6 +51,7 @@ class _HomeState extends State<Home> {
     }
   }
 
+  /// Remove permanentemente um guardião do Firestore pelo seu [docId].
   Future<void> _handleDelete(String docId) async {
     final String uid = _auth.currentUser!.uid;
     await _firestore
@@ -60,6 +62,8 @@ class _HomeState extends State<Home> {
         .delete();
   }
 
+  /// Exibe o modal de criação ou edição de um guardião.
+  /// Em modo de edição, pré-preenche os campos com os dados existentes.
   void _showPasswordModal({
     Map<String, dynamic>? initialData,
     String? docId,
@@ -84,9 +88,12 @@ class _HomeState extends State<Home> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        // StatefulBuilder permite atualizar o estado interno do modal
+        // sem precisar reconstruir o widget pai (necessário para o toggle de senha)
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Padding(
+              // Ajusta o padding para que o modal suba com o teclado
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
                 left: 20,
@@ -112,6 +119,7 @@ class _HomeState extends State<Home> {
                           color: Colors.blue,
                         ),
                       ),
+                      // Botão de exclusão visível apenas no modo de edição
                       if (isEdit)
                         IconButton(
                           icon: const Icon(
@@ -140,6 +148,7 @@ class _HomeState extends State<Home> {
                     decoration: InputDecoration(
                       labelText: "Senha",
                       prefixIcon: const Icon(Icons.lock_outline),
+                      // Botão para alternar visibilidade da senha dentro do modal
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isObscure ? Icons.visibility_off : Icons.visibility,
@@ -185,6 +194,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /// Atalho para construir campos de texto padronizados com ícone.
   Widget _buildTextField(
     String label,
     IconData icon,
@@ -218,6 +228,7 @@ class _HomeState extends State<Home> {
           ),
         ),
         actions: [
+          // Botão de logout: encerra a sessão e retorna para a tela de login
           IconButton(
             onPressed: () async {
               await _auth.signOut();
@@ -231,6 +242,7 @@ class _HomeState extends State<Home> {
       ),
       body: Column(
         children: [
+          // Campo de busca: filtra a lista em tempo real pelo nome do serviço
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: TextField(
@@ -253,6 +265,8 @@ class _HomeState extends State<Home> {
           ),
 
           Expanded(
+            // StreamBuilder escuta as mudanças no Firestore em tempo real,
+            // atualizando a lista automaticamente sem necessidade de recarregar
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('users')
@@ -265,10 +279,9 @@ class _HomeState extends State<Home> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // 1. Pegamos todos os documentos do Firebase
                 final allDocs = snapshot.data?.docs ?? [];
 
-                // 2. Criamos a lista FILTRADA baseada no que o usuário digitou
+                // Filtra os documentos pelo serviço com base na busca digitada
                 final filteredDocs = allDocs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   final service = (data['service'] ?? "")
@@ -277,7 +290,6 @@ class _HomeState extends State<Home> {
                   return service.contains(_searchQuery.toLowerCase());
                 }).toList();
 
-                // 3. Verificamos se a lista filtrada está vazia para evitar a tela vermelha
                 if (filteredDocs.isEmpty) {
                   return const Center(
                     child: Text("Nenhum guardião encontrado."),
@@ -321,6 +333,7 @@ class _HomeState extends State<Home> {
                           size: 18,
                           color: Colors.grey,
                         ),
+                        // Abre o modal de edição ao tocar no card
                         onTap: () => _showPasswordModal(
                           initialData: item,
                           docId: docId,
@@ -335,6 +348,7 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
+      // Botão para abrir o modal de criação de um novo guardião
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPasswordModal(isEdit: false),
         backgroundColor: Colors.blue,

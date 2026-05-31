@@ -15,7 +15,10 @@ class _RegisterState extends State<Register> {
   final _repeatPasswordController = TextEditingController();
   bool _isLoading = false;
 
+  /// Cria uma nova conta com e-mail e senha via Firebase,
+  /// e atualiza o nome de exibição do usuário após o cadastro.
   Future<void> _handleRegister() async {
+    // Valida se as senhas coincidem antes de chamar a API
     if (_passwordController.text != _repeatPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -26,16 +29,24 @@ class _RegisterState extends State<Register> {
       );
       return;
     }
+
     setState(() => _isLoading = true);
+
     try {
       UserCredential user = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
+
+      // Salva o nome de exibição separadamente, pois o Firebase
+      // não aceita o nome diretamente no cadastro por e-mail/senha
       await user.user?.updateDisplayName(_nameController.text.trim());
+
       if (mounted) Navigator.pushReplacementNamed(context, "/home");
+
     } on FirebaseAuthException catch (error) {
+      // Mapeia os códigos de erro do Firebase para mensagens amigáveis ao usuário
       String errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
 
       switch (error.code) {
@@ -73,6 +84,7 @@ class _RegisterState extends State<Register> {
         ),
       );
     } finally {
+      // Garante que o loading seja desativado independentemente do resultado
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -82,13 +94,14 @@ class _RegisterState extends State<Register> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
+          // Ocupa a altura total da tela para distribuir os elementos com Spacer
           height: MediaQuery.of(context).size.height,
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               const SizedBox(height: 10),
 
-              // 1. TOPO
+              // Abas de navegação entre Login e Registro
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -103,7 +116,7 @@ class _RegisterState extends State<Register> {
 
               const Spacer(),
 
-              // 2. MEIO
+              // Formulário de cadastro
               Column(
                 children: [
                   TextField(
@@ -128,7 +141,7 @@ class _RegisterState extends State<Register> {
                   const SizedBox(height: 15),
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: true, // Oculta os caracteres da senha
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -139,7 +152,7 @@ class _RegisterState extends State<Register> {
                   const SizedBox(height: 15),
                   TextField(
                     controller: _repeatPasswordController,
-                    obscureText: true,
+                    obscureText: true, // Oculta os caracteres da confirmação
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -158,6 +171,7 @@ class _RegisterState extends State<Register> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    // Exibe um spinner enquanto o cadastro está sendo processado
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -180,7 +194,7 @@ class _RegisterState extends State<Register> {
 
               const Spacer(),
 
-              // 3. RODAPÉ
+              // Rodapé com a marca do app
               const Padding(
                 padding: EdgeInsets.only(bottom: 10),
                 child: Text(
@@ -199,6 +213,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
+  /// Constrói uma aba de navegação com indicador visual de estado ativo/inativo.
   Widget _buildTabItem(String label, {required bool isActive}) {
     return Container(
       padding: const EdgeInsets.only(bottom: 4),
