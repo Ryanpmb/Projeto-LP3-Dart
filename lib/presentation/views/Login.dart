@@ -25,10 +25,39 @@ class _LoginState extends State<Login> {
         password: _passwordController.text.trim(),
       );
       if (mounted) Navigator.pushReplacementNamed(context, "/home");
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (error) {
+      String errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
+
+      switch (error.code) {
+        case 'invalid-email':
+          errorMessage = 'O endereço de e-mail mal formatado.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'Este usuário foi desativado.';
+          break;
+        case 'user-not-found':
+          errorMessage = 'Nenhum usuário encontrado com este e-mail.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Senha incorreta. Verifique e tente novamente.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Este e-mail já está sendo usado por outra conta.';
+          break;
+        case 'operation-not-allowed':
+          errorMessage = 'Esta operação não é permitida.';
+          break;
+        case 'weak-password':
+          errorMessage = 'A senha digitada é muito fraca. Escolha uma senha mais forte.';
+          break;
+        case 'invalid-credential':
+          errorMessage = 'Credenciais inválidas. Verifique seus dados.';
+          break;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("E-mail ou senha incorretos"),
+        SnackBar(
+          content: Text(errorMessage),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
