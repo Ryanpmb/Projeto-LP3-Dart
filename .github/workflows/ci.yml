@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Versão do Flutter fixada para reproduzir o ambiente local (Flutter 3.44.1 / Dart 3.12).
+env:
+  FLUTTER_VERSION: "3.44.1"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Testes unitários, de widget e de fluxo (não exigem Firebase real).
+  # Gate principal: roda em todo push/PR e bloqueia o merge se falhar.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Testes (unitário, widget, fluxo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      # Os *.mocks.dart estão no .gitignore, então precisam ser gerados no CI.
+      - name: Gerar mocks
+        run: dart run build_runner build
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Rodar testes
+        run: flutter test
+
+  # ---------------------------------------------------------------------------
+  # Testes de integração contra o Firebase Emulator Suite.
+  # Roda em web headless (chromedriver + xvfb) com os emuladores de Auth/Firestore.
+  # ---------------------------------------------------------------------------
+  integration:
+    name: Integração (Firebase Emulator)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # O emulador do Firestore precisa da JVM.
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Gerar mocks
+        run: dart run build_runner build
+
+      - name: Habilitar suporte a web
+        run: flutter config --enable-web
+
+      # chromedriver compatível com o Chrome pré-instalado no runner.
+      - name: Configurar chromedriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Subir o chromedriver
+        run: chromedriver --port=4444 &
+
+      # `emulators:exec` sobe os emuladores, roda o comando e os derruba ao fim.
+      # xvfb-run fornece um display virtual para o Chrome em ambiente headless.
+      - name: Rodar testes de integração no emulador
+        run: |
+          firebase emulators:exec --project=demo-guardians --only=auth,firestore \
+            "xvfb-run -a flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/guardiao_flow_test.dart \
+              -d web-server --browser-name=chrome"
