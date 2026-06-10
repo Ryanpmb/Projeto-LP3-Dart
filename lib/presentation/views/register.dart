@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:guardians/services/auth_service.dart';
 
 class Register extends StatefulWidget {
-  const Register({super.key});
+  /// Serviço de autenticação injetável (facilita os testes).
+  final AuthService? authService;
+
+  const Register({super.key, this.authService});
 
   @override
   State<Register> createState() => _RegisterState();
@@ -14,6 +18,8 @@ class _RegisterState extends State<Register> {
   final _passwordController = TextEditingController();
   final _repeatPasswordController = TextEditingController();
   bool _isLoading = false;
+
+  late final AuthService _authService = widget.authService ?? AuthService();
 
   /// Cria uma nova conta com e-mail e senha via Firebase,
   /// e atualiza o nome de exibição do usuário após o cadastro.
@@ -33,48 +39,17 @@ class _RegisterState extends State<Register> {
     setState(() => _isLoading = true);
 
     try {
-      UserCredential user = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
-
-      // Salva o nome de exibição separadamente, pois o Firebase
-      // não aceita o nome diretamente no cadastro por e-mail/senha
-      await user.user?.updateDisplayName(_nameController.text.trim());
+      await _authService.register(
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
 
       if (mounted) Navigator.pushReplacementNamed(context, "/home");
 
     } on FirebaseAuthException catch (error) {
       // Mapeia os códigos de erro do Firebase para mensagens amigáveis ao usuário
-      String errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
-
-      switch (error.code) {
-        case 'invalid-email':
-          errorMessage = 'O endereço de e-mail mal formatado.';
-          break;
-        case 'user-disabled':
-          errorMessage = 'Este usuário foi desativado.';
-          break;
-        case 'user-not-found':
-          errorMessage = 'Nenhum usuário encontrado com este e-mail.';
-          break;
-        case 'wrong-password':
-          errorMessage = 'Senha incorreta. Verifique e tente novamente.';
-          break;
-        case 'email-already-in-use':
-          errorMessage = 'Este e-mail já está sendo usado por outra conta.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage = 'Esta operação não é permitida.';
-          break;
-        case 'weak-password':
-          errorMessage = 'A senha digitada é muito fraca. Escolha uma senha mais forte.';
-          break;
-        case 'invalid-credential':
-          errorMessage = 'Credenciais inválidas. Verifique seus dados.';
-          break;
-      }
+      final String errorMessage = AuthService.messageFromCode(error.code);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
