@@ -71,12 +71,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # O emulador do Firestore precisa da JVM.
+      # O emulador do Firestore precisa da JVM. O firebase-tools exige JDK 21+.
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - name: Configurar Node
         uses: actions/setup-node@v4
