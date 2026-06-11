@@ -1,1 +1,7 @@
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Arquivos gerados pelo build_runner (mocks do mockito) não seguem o estilo
+  # do projeto e produzem avisos fora do nosso controle; ficam fora da análise.
+  exclude:
+    - "**/*.mocks.dart"

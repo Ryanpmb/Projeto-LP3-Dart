@@ -34,6 +34,27 @@ jobs:
       - name: Gerar mocks
         run: dart run build_runner build
 
+      # firebase_options.dart é gerado pelo `flutterfire configure` e está no
+      # .gitignore. Os testes não iniciam o app de produção, então um stub com
+      # valores demo basta para o main.dart compilar e o analyze passar.
+      - name: Gerar firebase_options (stub)
+        run: |
+          mkdir -p lib/infrastructure
+          cat > lib/infrastructure/firebase_options.dart <<'EOF'
+          import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+
+          /// Stub gerado no CI. O arquivo real (com as credenciais do projeto) é
+          /// criado pelo `flutterfire configure` e fica fora do versionamento.
+          class DefaultFirebaseOptions {
+          static const FirebaseOptions currentPlatform = FirebaseOptions(
+          apiKey: 'demo-api-key',
+          appId: '1:123456789012:web:demoappid',
+          messagingSenderId: '123456789012',
+          projectId: 'demo-guardians',
+          );
+          }
+          EOF
+
       - name: Análise estática
         run: flutter analyze
 

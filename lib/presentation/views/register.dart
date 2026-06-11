@@ -51,6 +51,7 @@ class _RegisterState extends State<Register> {
       // Mapeia os códigos de erro do Firebase para mensagens amigáveis ao usuário
       final String errorMessage = AuthService.messageFromCode(error.code);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -197,7 +198,7 @@ class _RegisterState extends State<Register> {
           bottom: BorderSide(
             color: isActive
                 ? Colors.lightBlue
-                : Colors.lightBlue.withOpacity(0.3),
+                : Colors.lightBlue.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -207,7 +208,7 @@ class _RegisterState extends State<Register> {
         style: TextStyle(
           color: isActive
               ? Colors.lightBlue
-              : Colors.lightBlue.withOpacity(0.3),
+              : Colors.lightBlue.withValues(alpha: 0.3),
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),

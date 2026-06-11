@@ -145,8 +145,9 @@ class _HomeState extends State<Home> {
                   const SizedBox(height: 25),
                   ElevatedButton(
                     onPressed: () async {
+                      final navigator = Navigator.of(context);
                       await _handleSave(docId);
-                      Navigator.pop(context);
+                      navigator.pop();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -209,10 +210,9 @@ class _HomeState extends State<Home> {
           // Botão de logout: encerra a sessão e retorna para a tela de login
           IconButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               await _authService.signOut();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, "/login");
-              }
+              navigator.pushReplacementNamed("/login");
             },
             icon: const Icon(Icons.logout, color: Colors.blue),
           ),
