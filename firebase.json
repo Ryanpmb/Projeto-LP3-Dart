@@ -1,1 +1,47 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"guardians-app-br","appId":"1:720336806753:android:9da988ced2b35c28a71b20","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"guardians-app-br","configurations":{"android":"1:720336806753:android:9da988ced2b35c28a71b20","ios":"1:720336806753:ios:465c37de3f5bd426a71b20","macos":"1:720336806753:ios:465c37de3f5bd426a71b20","web":"1:720336806753:web:dadb20307dd4b9f9a71b20","windows":"1:720336806753:web:c5164e8968f3956da71b20"}},"lib/infrastructure/firebase_options.dart":{"projectId":"guardians-app-br","configurations":{"android":"1:720336806753:android:9da988ced2b35c28a71b20","web":"1:720336806753:web:dadb20307dd4b9f9a71b20"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "guardians-app-br",
+          "appId": "1:720336806753:android:9da988ced2b35c28a71b20",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "guardians-app-br",
+          "configurations": {
+            "android": "1:720336806753:android:9da988ced2b35c28a71b20",
+            "ios": "1:720336806753:ios:465c37de3f5bd426a71b20",
+            "macos": "1:720336806753:ios:465c37de3f5bd426a71b20",
+            "web": "1:720336806753:web:dadb20307dd4b9f9a71b20",
+            "windows": "1:720336806753:web:c5164e8968f3956da71b20"
+          }
+        },
+        "lib/infrastructure/firebase_options.dart": {
+          "projectId": "guardians-app-br",
+          "configurations": {
+            "android": "1:720336806753:android:9da988ced2b35c28a71b20",
+            "web": "1:720336806753:web:dadb20307dd4b9f9a71b20"
+          }
+        }
+      }
+    }
+  }
+}

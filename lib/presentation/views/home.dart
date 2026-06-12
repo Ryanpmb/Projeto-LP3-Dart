@@ -1,17 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:guardians/services/auth_service.dart';
+import 'package:guardians/services/guardiao_service.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  /// Serviços injetáveis (facilitam os testes).
+  final AuthService? authService;
+  final GuardiaoService? guardiaoService;
+
+  const Home({super.key, this.authService, this.guardiaoService});
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late final AuthService _authService = widget.authService ?? AuthService();
+  late final GuardiaoService _guardiaoService =
+      widget.guardiaoService ?? GuardiaoService();
 
   final TextEditingController _serviceController = TextEditingController();
   final TextEditingController _userController = TextEditingController();
@@ -23,43 +29,17 @@ class _HomeState extends State<Home> {
   /// Salva ou atualiza um guardião no Firestore.
   /// Se [docId] for nulo, cria um novo documento; caso contrário, atualiza o existente.
   Future<void> _handleSave(String? docId) async {
-    final String uid = _auth.currentUser!.uid;
-    final data = {
-      "service": _serviceController.text,
-      "user": _userController.text,
-      "pass": _passController.text,
-      // Usa a primeira letra do serviço como ícone, ou "?" se o campo estiver vazio
-      "icon": _serviceController.text.isNotEmpty
-          ? _serviceController.text[0].toUpperCase()
-          : "?",
-      "updatedAt": FieldValue.serverTimestamp(),
-    };
-
-    if (docId == null) {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('guardioes')
-          .add(data);
-    } else {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('guardioes')
-          .doc(docId)
-          .update(data);
-    }
+    await _guardiaoService.save(
+      service: _serviceController.text,
+      user: _userController.text,
+      pass: _passController.text,
+      docId: docId,
+    );
   }
 
   /// Remove permanentemente um guardião do Firestore pelo seu [docId].
   Future<void> _handleDelete(String docId) async {
-    final String uid = _auth.currentUser!.uid;
-    await _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('guardioes')
-        .doc(docId)
-        .delete();
+    await _guardiaoService.delete(docId);
   }
 
   /// Exibe o modal de criação ou edição de um guardião.
@@ -165,8 +145,9 @@ class _HomeState extends State<Home> {
                   const SizedBox(height: 25),
                   ElevatedButton(
                     onPressed: () async {
+                      final navigator = Navigator.of(context);
                       await _handleSave(docId);
-                      Navigator.pop(context);
+                      navigator.pop();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -212,8 +193,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final String uid = _auth.currentUser!.uid;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -231,10 +210,9 @@ class _HomeState extends State<Home> {
           // Botão de logout: encerra a sessão e retorna para a tela de login
           IconButton(
             onPressed: () async {
-              await _auth.signOut();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, "/login");
-              }
+              final navigator = Navigator.of(context);
+              await _authService.signOut();
+              navigator.pushReplacementNamed("/login");
             },
             icon: const Icon(Icons.logout, color: Colors.blue),
           ),
@@ -268,12 +246,7 @@ class _HomeState extends State<Home> {
             // StreamBuilder escuta as mudanças no Firestore em tempo real,
             // atualizando a lista automaticamente sem necessidade de recarregar
             child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('guardioes')
-                  .orderBy('updatedAt', descending: true)
-                  .snapshots(),
+              stream: _guardiaoService.stream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
